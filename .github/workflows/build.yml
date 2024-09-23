@@ -27,12 +27,9 @@ jobs:
         include:
           - board: nice_nano_v2
             shield: corne_left
-            cmake-args: -DCONFIG_ZMK_DISPLAY=y
-            skip-archive: true
           - board: nice_nano_v2
             shield: corne_right
-            cmake-args: -DCONFIG_ZMK_DISPLAY=y
-            skip-archive: true
+            
     steps:
       - name: Checkout
         uses: actions/checkout@v4
