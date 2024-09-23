@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: docker.io/zmkfirmware/zmk-build-arm:2.5
+      image: docker.io/zmkfirmware/zmk-build-arm:3.5
     strategy:
       matrix:
         board:
@@ -32,9 +32,9 @@ jobs:
             
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
       - name: Cache west modules
-        uses: actions/cache@v4
+        uses: actions/cache@v2
         env:
           cache-name: cache-zephyr-modules
         with:
