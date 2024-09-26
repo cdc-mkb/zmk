@@ -9,7 +9,7 @@ manifest:
   projects:
     - name: zmk-trackball
       remote: Lee-Seokjeong
-      revision: main
+      revision: mouse-pim447
         
     - name: zmk
       remote: zmkfirmware
