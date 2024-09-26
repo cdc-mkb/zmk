@@ -1,0 +1,87 @@
+name: Build
+
+on:
+  push:
+    paths:
+      - ".github/workflows/build.yml"
+      - "app/**"
+  pull_request:
+    paths:
+      - ".github/workflows/build.yml"
+      - "app/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:2.5
+    strategy:
+      matrix:
+        board:
+          - nice_nano_v2
+          
+        shield:
+          - corne_left
+          - corne_right
+          
+        cmake-args: [""]
+        include:
+          - board: nice_nano_v2
+            shield: corna_left
+            cmake-args: -DCONFIG_ZMK_DISPLAY=y
+            skip-archive: true
+          - board: nice_nano_v2
+            shield: corn_right
+            cmake-args: -DCONFIG_ZMK_DISPLAY=y
+            skip-archive: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache west modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-zephyr-modules
+        with:
+          path: |
+            modules/
+            tools/
+            zephyr/
+            bootloader/
+          key: 4-${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('app/west.yml') }}
+          restore-keys: |
+            4-${{ runner.os }}-build-${{ env.cache-name }}-
+            4-${{ runner.os }}-build-
+            4-${{ runner.os }}-
+        timeout-minutes: 5
+        continue-on-error: true
+      - name: Initialize workspace (west init)
+        run: west init -l app
+      - name: Update modules (west update)
+        run: west update
+      - name: Export Zephyr CMake package (west zephyr-export)
+        run: west zephyr-export
+      - name: Prepare variables
+        id: variables
+        run: |
+          SHIELD_ARG=
+          ARTIFACT_NAME="${{ matrix.board }}"
+
+          if [ -n "${{ matrix.shield }}" ]; then
+            SHIELD_ARG="-DSHIELD=${{ matrix.shield }}"
+            ARTIFACT_NAME="${ARTIFACT_NAME}-${{ matrix.shield }}"
+          fi
+
+          ARTIFACT_NAME="${ARTIFACT_NAME}-zmk"
+
+          echo ::set-output name=shield-arg::${SHIELD_ARG}
+          echo ::set-output name=artifact-name::${ARTIFACT_NAME}
+      - name: Build (west build)
+        run: west build -s app -b ${{ matrix.board }} -- ${{ steps.variables.outputs.shield-arg }} ${{ matrix.cmake-args }}
+      - name: Archive artifacts
+        if: ${{ !matrix.skip-archive }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ steps.variables.outputs.artifact-name }}"
+          path: |
+            build/zephyr/zmk.uf2
+        continue-on-error: true
