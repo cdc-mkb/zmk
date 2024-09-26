@@ -36,9 +36,9 @@ jobs:
             skip-archive: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Cache west modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         env:
           cache-name: cache-zephyr-modules
         with:
@@ -79,7 +79,7 @@ jobs:
         run: west build -s app -b ${{ matrix.board }} -- ${{ steps.variables.outputs.shield-arg }} ${{ matrix.cmake-args }}
       - name: Archive artifacts
         if: ${{ !matrix.skip-archive }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: "${{ steps.variables.outputs.artifact-name }}"
           path: |
